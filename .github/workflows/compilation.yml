@@ -1,0 +1,46 @@
+name: Simple compilation
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'data/**'
+      - '**.md'
+      - '**.py'
+      - '**.sh'
+      - '**.txt'
+      - '!**/CMakeLists.txt'
+      - '!dependencies/apt.txt'
+  workflow_dispatch:
+  pull_request:
+    branches:
+    - master
+    
+concurrency:
+  group: ci-${{ github.actor }}
+  cancel-in-progress: true
+  
+jobs:
+  build:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+        include:
+          - cc: gcc
+            cxx: g++
+          - cc: clang
+            cxx: clang++
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: sed 's/\r$//' dependencies/apt.txt | sed 's/#.*//' | xargs sudo apt install -y
+    
+    - name: Configure
+      run: CC=${{ matrix.cc }} CXX=${{ matrix.cxx }} cmake -G"Unix Makefiles" -Bbuild
+
+    - name: Build
+      run: cmake --build build

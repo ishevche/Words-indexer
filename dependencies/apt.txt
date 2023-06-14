@@ -1,0 +1,6 @@
+cmake
+g++
+python3
+libboost-all-dev
+libfmt-dev
+libtbb-dev
